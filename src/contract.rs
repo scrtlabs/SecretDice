@@ -199,7 +199,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>, msg: QueryM
         QueryMsg::GetResult {} => {
             let state = State::load(&deps.storage)?;
 
-            if state.player_1.is_none() || state.player_2.is_none() {
+            if state.winner.is_none() {
                 return Err(StdError::generic_err("Still waiting for players."));
             }
 
