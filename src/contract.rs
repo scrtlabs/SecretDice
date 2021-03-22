@@ -91,7 +91,8 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             // the winner then gets 2 SCRT
 
             if env.message.sent_funds.len() != 1
-                || env.message.sent_funds[0].amount != Uint128(1_000_000 /* 1 SCRT */)
+                || env.message.sent_funds[0].amount
+                    != Uint128(1_000_000 /* 1mn uscrt = 1 SCRT */)
                 || env.message.sent_funds[0].denom != String::from("uscrt")
             {
                 return Err(StdError::generic_err(
@@ -132,7 +133,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
                     messages: vec![CosmosMsg::Bank(BankMsg::Send {
                         from_address: env.contract.address,
                         to_address: state.winner.unwrap(),
-                        amount: vec![Coin::new(2_000_000, "uscrt")],
+                        amount: vec![Coin::new(2_000_000, "uscrt")], // 1mn uscrt = 1 SCRT
                     })],
                     log: vec![],
                     data: None,
@@ -166,7 +167,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
                 messages: vec![CosmosMsg::Bank(BankMsg::Send {
                     from_address: env.contract.address,
                     to_address: env.message.sender,
-                    amount: vec![Coin::new(1_000_000, "uscrt")],
+                    amount: vec![Coin::new(1_000_000, "uscrt")], // 1mn uscrt = 1 SCRT
                 })],
                 log: vec![],
                 data: None,
