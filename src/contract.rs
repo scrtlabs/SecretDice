@@ -68,6 +68,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
 #[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
     Join { secret: u128 },
+    Leave {},
 }
 
 pub fn handle<S: Storage, A: Api, Q: Querier>(
@@ -127,6 +128,37 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             } else {
                 Err(StdError::generic_err("Game is full."))
             }
+        }
+        HandleMsg::Leave {} => {
+            // if player 2 isn't in yet, player 1 can leave and get their money back
+
+            let mut state = State::load(&deps.storage)?;
+
+            if state.player_1 != Some(env.message.sender.clone()) {
+                return Err(StdError::generic_err("You are not a player."));
+            }
+
+            if state.winner.is_some() {
+                return Err(StdError::generic_err(format!(
+                    "Game is already over. Winner is {}.",
+                    state.winner.unwrap()
+                )));
+            }
+
+            state.player_1 = None;
+            state.player_1_secret = 0;
+
+            State::save(&mut deps.storage, &state.clone())?;
+
+            Ok(HandleResponse {
+                messages: vec![CosmosMsg::Bank(BankMsg::Send {
+                    from_address: env.contract.address,
+                    to_address: env.message.sender,
+                    amount: vec![Coin::new(1_000_000, "uscrt")],
+                })],
+                log: vec![],
+                data: None,
+            })
         }
     }
 }
