@@ -22,8 +22,8 @@ struct State {
 }
 
 impl State {
-    pub fn save<S: Storage>(storage: &mut S, data: &State) -> StdResult<()> {
-        Singleton::new(storage, b"state").save(data)
+    pub fn save<S: Storage>(&self, storage: &mut S) -> StdResult<()> {
+        Singleton::new(storage, b"state").save(self)
     }
 
     pub fn load<S: Storage>(storage: &S) -> StdResult<State> {
@@ -55,7 +55,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         winner: None,
     };
 
-    State::save(&mut deps.storage, &state)?;
+    state.save(&mut deps.storage)?;
 
     Ok(InitResponse::default())
 }
@@ -106,7 +106,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
                 state.player_1 = Some(env.message.sender);
                 state.player_1_secret = secret;
 
-                State::save(&mut deps.storage, &state)?;
+                state.save(&mut deps.storage)?;
 
                 Ok(HandleResponse::default())
             } else if state.player_2.is_none() {
@@ -114,7 +114,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
                 state.player_2_secret = secret;
 
                 let mut combined_secret: Vec<u8> = state.player_1_secret.to_be_bytes().to_vec();
-                combined_secret.extend(state.player_2_secret.to_be_bytes().to_vec());
+                combined_secret.extend(&state.player_2_secret.to_be_bytes());
 
                 let random_seed: [u8; 32] = Sha256::digest(&combined_secret).into();
                 let mut rng = ChaChaRng::from_seed(random_seed);
@@ -127,7 +127,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
                     state.winner = state.player_2.clone();
                 }
 
-                State::save(&mut deps.storage, &state.clone())?;
+                state.save(&mut deps.storage)?;
 
                 Ok(HandleResponse {
                     messages: vec![CosmosMsg::Bank(BankMsg::Send {
@@ -147,7 +147,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
 
             let mut state = State::load(&deps.storage)?;
 
-            if state.player_1 != Some(env.message.sender.clone()) {
+            if state.player_1.as_ref() != Some(&env.message.sender) {
                 return Err(StdError::generic_err("You are not a player."));
             }
 
@@ -161,7 +161,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             state.player_1 = None;
             state.player_1_secret = 0;
 
-            State::save(&mut deps.storage, &state.clone())?;
+            state.save(&mut deps.storage)?;
 
             Ok(HandleResponse {
                 messages: vec![CosmosMsg::Bank(BankMsg::Send {
