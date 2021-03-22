@@ -78,6 +78,18 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
 ) -> HandleResult {
     match msg {
         HandleMsg::Join { secret } => {
+            // player 1 joins, sends a secret and deposits 1 SCRT to the contract
+            // player 1's secret is stored privatly
+            //
+            // player 2 joins, sends a secret and deposits 1 SCRT to the contract
+            // player 2's secret is stored privatly
+            //
+            // once player 2 joins, we can derive a shared secret that no one knows
+            // then we can roll the dice and choose a winner
+            // dice roll 1-3: player 1 wins / dice roll 4-6: player 2 wins
+            //
+            // the winner then gets 2 SCRT
+
             if env.message.sent_funds.len() != 1
                 || env.message.sent_funds[0].amount != Uint128(1_000_000 /* 1 SCRT */)
                 || env.message.sent_funds[0].denom != String::from("uscrt")
