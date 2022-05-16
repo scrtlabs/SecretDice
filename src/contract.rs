@@ -79,10 +79,10 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     match msg {
         HandleMsg::Join { secret } => {
             // player 1 joins, sends a secret and deposits 1 SCRT to the contract
-            // player 1's secret is stored privatly
+            // player 1's secret is stored privately
             //
             // player 2 joins, sends a secret and deposits 1 SCRT to the contract
-            // player 2's secret is stored privatly
+            // player 2's secret is stored privately
             //
             // once player 2 joins, we can derive a shared secret that no one knows
             // then we can roll the dice and choose a winner
